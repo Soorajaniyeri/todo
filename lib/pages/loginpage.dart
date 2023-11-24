@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:todomaster/pages/registration.dart';
 import 'package:todomaster/pages/todoscreen.dart';
 
 import '../widgets/textfield.dart';
@@ -161,10 +162,18 @@ class _LoginPageState extends State<LoginPage> {
                           backgroundColor:
                               MaterialStateProperty.all(Colors.blue)),
                       onPressed: () {},
-                      child: Text(
-                        "  Register  ",
-                        style: GoogleFonts.oswald(
-                            textStyle: TextStyle(color: Colors.white)),
+                      child: InkWell(
+                        onTap: (){
+
+                          Navigator.push(context, MaterialPageRoute(builder: (context){
+                            return Registration();
+                          }));
+                        },
+                        child: Text(
+                          "  Register  ",
+                          style: GoogleFonts.oswald(
+                              textStyle: TextStyle(color: Colors.white)),
+                        ),
                       ))
                 ],
               )

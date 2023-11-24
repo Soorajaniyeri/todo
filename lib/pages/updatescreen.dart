@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,15 +13,24 @@ class UpdateScreen extends StatefulWidget {
 }
 
 class _UpdateScreenState extends State<UpdateScreen> {
-  FirebaseFirestore load = FirebaseFirestore.instance;
+  final currentUser = FirebaseAuth.instance.currentUser;
+
   TextEditingController todoText = TextEditingController();
 
-  updateData({required docId}) async {
-    await load.collection('todo').doc(docId).update({"todo": todoText.text});
+  updateTodoData({required docId}) async {
+    FirebaseFirestore.instance
+        .collection("users")
+        .doc(currentUser!.uid)
+        .collection("todo")
+        .doc(docId)
+        .update({"todo": todoText.text});
+
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    print(widget.docId);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
@@ -47,25 +57,9 @@ class _UpdateScreenState extends State<UpdateScreen> {
           ),
           ElevatedButton(
               onPressed: () {
-                updateData(docId: widget.docId);
+                updateTodoData(docId: widget.docId);
               },
               child: Text("update")),
-          Expanded(
-            child: StreamBuilder(
-                stream: load.collection("todo").doc(widget.docId).snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  if (snapshot.hasData) {
-                    return Center(child: Text(snapshot.data!['todo']));
-                  } else {
-                    return SizedBox();
-                  }
-                }),
-          )
         ],
       ),
     );

@@ -6,6 +6,7 @@ import 'package:todomaster/pages/loginpage.dart';
 import 'package:todomaster/pages/registration.dart';
 import 'package:todomaster/pages/splashscreen.dart';
 import 'package:todomaster/pages/updatescreen.dart';
+import 'package:todomaster/updateprofile.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -21,6 +22,11 @@ class _TodoScreenState extends State<TodoScreen> {
   TextEditingController updateTodoText = TextEditingController();
   TextEditingController newTodoText = TextEditingController();
 
+  CollectionReference mydata = FirebaseFirestore.instance
+      .collection("users")
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection("logindetails");
+
   // creating to fetch current user function
 
   fetchUser() {
@@ -32,7 +38,11 @@ class _TodoScreenState extends State<TodoScreen> {
   // creating firestore data loading function
 
   addData() async {
-    await data.collection("todo").add({"todo": newTodoText.text});
+    await data
+        .collection("users")
+        .doc(fetch.currentUser!.uid)
+        .collection("todo")
+        .add({"todo": newTodoText.text});
   }
 
   logout() async {
@@ -43,7 +53,12 @@ class _TodoScreenState extends State<TodoScreen> {
   }
 
   deleteData({required docId}) async {
-    await data.collection("todo").doc(docId).delete();
+    await data
+        .collection("users")
+        .doc(fetch.currentUser!.uid)
+        .collection("todo")
+        .doc(docId)
+        .delete();
   }
 
   // updateData({required docId}) {
@@ -144,55 +159,126 @@ class _TodoScreenState extends State<TodoScreen> {
       drawer: Drawer(
         child: Column(
           children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              //height: 200,
-              width: 350,
-              color: Colors.blue,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 60,
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  userEmail == null
-                      ? SizedBox()
-                      : Text(userEmail!,
-                          style: GoogleFonts.oswald(
-                              textStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20))),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  InkWell(
-                    onTap: (){
-
-                      logout();
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(20),
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
+            Stack(children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                //height: 200,
+                width: 350,
+                color: Colors.blue,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    InkWell(
+                      onTap: () {},
+                      child: Icon(
+                        Icons.person,
                         color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        size: 60,
                       ),
-                      child: Center(
-                          child: Text(
-                        "Logout",
-                        style: GoogleFonts.oswald(),
-                      )),
                     ),
-                  )
-                ],
+                    SizedBox(
+                      height: 10,
+                    ),
+                    userEmail == null
+                        ? SizedBox()
+                        :
+                        // : Text(userEmail!,
+                        //     style: GoogleFonts.oswald(
+                        //         textStyle: TextStyle(
+                        //             color: Colors.white,
+                        //             fontWeight: FontWeight.bold,
+                        //             fontSize: 20))),
+
+                        StreamBuilder(
+                            stream: mydata.snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Column(children: [
+                                  Text(
+                                    snapshot.data!.docs[0]['name'],
+                                    style: GoogleFonts.oswald(
+                                        textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20)),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Text(
+                                    snapshot.data!.docs[0]['email'],
+                                    style: GoogleFonts.oswald(
+                                        textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20)),
+                                  ),
+                                ]);
+                              } else {
+                                return SizedBox();
+                              }
+                            }),
+
+                    SizedBox(
+                      height: 10,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        logout();
+                      },
+                      child: Container(
+                        margin: EdgeInsets.all(20),
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        child: Center(
+                            child: Text(
+                          "Logout",
+                          style: GoogleFonts.oswald(),
+                        )),
+                      ),
+                    ),
+                    // InkWell(
+                    //   onTap: () {
+                    //     print(fetch.currentUser!.uid);
+                    //     Navigator.push(context,
+                    //         MaterialPageRoute(builder: (context) {
+                    //       return UpdatePro(uid: fetch.currentUser!.uid);
+                    //     }));
+                    //   },
+                    //   child: Container(
+                    //     margin: EdgeInsets.all(20),
+                    //     padding: EdgeInsets.all(10),
+                    //     decoration: BoxDecoration(
+                    //       color: Colors.white,
+                    //       borderRadius: BorderRadius.all(Radius.circular(10)),
+                    //     ),
+                    //     child: Center(
+                    //         child: Text(
+                    //       "Edit Profile",
+                    //       style: GoogleFonts.oswald(),
+                    //     )),
+                    //   ),
+                    // ),
+                  ],
+                ),
               ),
-            )
+              Positioned(
+                  top: 10,
+                  right: 10,
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => UpdatePro()));
+                    },
+                    icon: Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                    ),
+                  ))
+            ])
           ],
         ),
       ),
@@ -212,7 +298,11 @@ class _TodoScreenState extends State<TodoScreen> {
         children: [
           Expanded(
             child: StreamBuilder(
-                stream: data.collection("todo").snapshots(),
+                stream: data
+                    .collection("users")
+                    .doc(fetch.currentUser!.uid)
+                    .collection("todo")
+                    .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(

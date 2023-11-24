@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todomaster/pages/todoscreen.dart';
@@ -15,14 +16,21 @@ class _RegistrationState extends State<Registration> {
   TextEditingController email = TextEditingController();
   TextEditingController pass = TextEditingController();
   FirebaseAuth register = FirebaseAuth.instance;
+  FirebaseFirestore dataStore = FirebaseFirestore.instance;
 
   // creating registration function
 
-  firebaseReg({required email, required password}) async {
+  firebaseReg({required email, required password, required name}) async {
     try {
       UserCredential userData = await register.createUserWithEmailAndPassword(
           email: email, password: password);
       if (userData.user != null) {
+        dataStore
+            .collection("users")
+            .doc(userData.user!.uid)
+            .collection("logindetails")
+            .add({"email": email, "name": name});
+
         Navigator.of(context)
             .pushReplacement(MaterialPageRoute(builder: (context) {
           return TodoScreen();
@@ -45,7 +53,7 @@ class _RegistrationState extends State<Registration> {
           TextFieldDesign(hintText: "enter your password", controller: pass),
           ElevatedButton(
               onPressed: () {
-                firebaseReg(email: email.text, password: pass.text);
+                firebaseReg(email: email.text, password: pass.text,name: name.text);
               },
               child: Text("Create Account"))
         ],
